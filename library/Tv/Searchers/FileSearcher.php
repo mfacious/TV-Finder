@@ -110,7 +110,6 @@ class FileSearcher implements SearcherInterface
             
             $directoryIterator = $this->getDirectoryIterator();
 
-            
             foreach (
                 new \RecursiveIteratorIterator($directoryIterator) as $path) {
                 
@@ -126,7 +125,6 @@ class FileSearcher implements SearcherInterface
         }
         
         return $episodes;
-
     }
 
 }

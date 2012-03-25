@@ -53,7 +53,7 @@ class TVSearch
         
         $this->setDownloadClients($downloadSearchClients);
         
-        
+        $this->setEpisodeClients($episodeClients);
     }
     
     public function getSearcher()
@@ -88,7 +88,7 @@ class TVSearch
                         . ' passed must be objects!');
             }
             
-            if(!$client instanceof DownloadClients\ClientInterface)
+            if(!$client instanceof EpisodeClients\EpisodeClientInterface)
             {
                 throw new \InvalidArgumentException(__METHOD__ . ' all clients'
                         . ' passed must implement the ClientInterface.');
@@ -183,9 +183,9 @@ class TVSearch
     public function getShowAliases(array $show)
     {
         $aliases = array();
-        if(isset($showConfig['aliases']))
+        if(isset($show['aliases']))
         {
-            $aliases = $showConfig['aliases'];
+            $aliases = $show['aliases'];
         }
         
         return $aliases;
@@ -235,6 +235,7 @@ class TVSearch
     
     public function getUpcomingEps($episodes)
     {
+        
         $results = array();
         foreach($episodes as $interalId => $existingEpisodes)
         {
@@ -255,6 +256,9 @@ class TVSearch
             $results[$interalId] = $missingEpisodes;
             
         }
+        
+        var_dump($results);
+        die();
         
         return $results;
         
