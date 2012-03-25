@@ -49,6 +49,12 @@ class EpisodeGuess implements EpisodeClientInterface
         
         $missing = array($firstMissing, $secondMissing, $thirdMissing);
         
+        foreach($missing as $missingEpisode)
+        {
+            $missingEpisode->setShowName($name);
+            $missingEpisode->setShowAliases($aliases);
+        }
+        
         return $missing;
         
     }

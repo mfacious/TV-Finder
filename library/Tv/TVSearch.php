@@ -197,7 +197,12 @@ class TVSearch
         
         $existingEps = $this->getExistingEps($shows);
         
-        $this->getUpcomingEps($existingEps);
+        $missingEps = $this->getUpcomingEps($existingEps);
+        
+        $this->searchForEps($missingEps);
+        
+        var_dump($missingEps);
+        die();
 
     }
     
@@ -257,10 +262,12 @@ class TVSearch
             
         }
         
-        var_dump($results);
-        die();
-        
         return $results;
         
+    }
+    
+    public function searchForEps($missingEpisodes)
+    {
+        $clients = $this->getDownloadClients();
     }
 }
