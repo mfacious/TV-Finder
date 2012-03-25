@@ -13,7 +13,9 @@ class TVSearch
      * 
      * @var array 
      */
-    protected $_clients = array();
+    protected $_downloadClients = array();
+    
+    protected $_episodeClients = array();
 
     protected $_showList = array(
         array(
@@ -37,18 +39,21 @@ class TVSearch
      */
     public function __construct(
             Searchers\SearcherInterface $searcher,
-            array $downloadSearchClients
+            array $downloadSearchClients,
+            array $episodeClients
     )
     {
         $this->setSearcher($searcher);
         
-        if(empty($finders))
+        if(empty($downloadSearchClients))
         {
             throw new \InvalidArgumentException(__METHOD__ . ' requires that'
                     . ' the clients you pass must not be empty.');
         }
         
         $this->setDownloadClients($downloadSearchClients);
+        
+        
     }
     
     public function getSearcher()
@@ -59,6 +64,47 @@ class TVSearch
     public function setSearcher(Searchers\SearcherInterface $searcher)
     {
         $this->_searcher = $searcher;
+    }
+    
+    public function getEpisodeClients()
+    {
+        if(empty($this->_episodeClients))
+        {
+            throw new \InvalidArgumentException(__METHOD__ . ' no clients have'
+                    . ' been set yet! Try setting some with ' . __CLASS__
+                    . '::setClients()');
+        }
+        
+        return $this->_episodeClients;
+    }
+
+    public function setEpisodeClients(array $clients)
+    {
+        foreach($clients as $client)
+        {
+            if(!is_object($client))
+            {
+                throw new \InvalidArgumentException(__METHOD__ . ' all clients'
+                        . ' passed must be objects!');
+            }
+            
+            if(!$client instanceof DownloadClients\ClientInterface)
+            {
+                throw new \InvalidArgumentException(__METHOD__ . ' all clients'
+                        . ' passed must implement the ClientInterface.');
+            }
+            
+            $this->addEpisodeClient($client);
+        }
+        
+        return $this;
+    }
+    
+    public function addEpisodeClient(EpisodeClients\EpisodeClientInterface $client)
+    {
+        $this->_episodeClients[] = $client;
+        
+        return $this;
     }
     
     public function getDownloadClients()
@@ -83,7 +129,7 @@ class TVSearch
                         . ' passed must be objects!');
             }
             
-            if(!$client instanceof Clients\ClientInterface)
+            if(!$client instanceof DownloadClients\ClientInterface)
             {
                 throw new \InvalidArgumentException(__METHOD__ . ' all clients'
                         . ' passed must implement the ClientInterface.');
@@ -112,6 +158,39 @@ class TVSearch
         $this->_showList = $showList;
     }
     
+    public function getShow($showId)
+    {
+        if(!isset($this->_showList[$showId]))
+        {
+            throw new \OutOfBoundsException(__METHOD__ . ' could not find show'
+                    . ' with the ID of ' . $showId . '.');
+        }
+        
+        return $this->_showList[$showId];
+    }
+    
+    public function getShowName(array $show)
+    {
+        if(!isset($show['name']))
+        {
+            throw new \InvalidArgumentException(__METHOD__ . 'Show '
+                    . 'configuration must contain at least a name!');
+        }
+
+        return $show['name'];
+    }
+    
+    public function getShowAliases(array $show)
+    {
+        $aliases = array();
+        if(isset($showConfig['aliases']))
+        {
+            $aliases = $showConfig['aliases'];
+        }
+        
+        return $aliases;
+    }
+    
     public function run()
     {
         $shows = $this->getShowList();
@@ -136,19 +215,9 @@ class TVSearch
         {
             $searcher = $this->getSearcher()->resetSearch();
             
-            if(!isset($showConfig['name']))
-            {
-                throw new \InvalidArgumentException(__METHOD__ . 'Show '
-                        . 'configuration must contain at least a name!');
-            }
+            $name = $this->getShowName($showConfig);
             
-            $name = $showConfig['name'];
-            
-            $aliases = array();
-            if(isset($showConfig['aliases']))
-            {
-                $aliases = $showConfig['aliases'];
-            }
+            $aliases = $this->getShowAliases($showConfig);
             
             try
             {
@@ -164,8 +233,30 @@ class TVSearch
         return $results;
     }
     
-    public function getUpcomingEps()
+    public function getUpcomingEps($episodes)
     {
+        $results = array();
+        foreach($episodes as $interalId => $existingEpisodes)
+        {
+            $showInfo = $this->getShow($interalId);
+            
+            $name = $this->getShowName($showInfo);
+            $aliases = $this->getShowAliases($showInfo);
+            
+            $missingEpisodes = array();
+            
+            foreach($this->getEpisodeClients() as $client)
+            {
+                $missingEpisodes[] = $client->getMissingEpisodes(
+                        $name, $aliases, $existingEpisodes
+                );
+            }
+            
+            $results[$interalId] = $missingEpisodes;
+            
+        }
+        
+        return $results;
         
     }
 }

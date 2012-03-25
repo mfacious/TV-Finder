@@ -1,6 +1,6 @@
 <?php
 
-namespace Tv\Clients;
+namespace Tv\DownloadClients;
 
 interface ClientInterface
 {

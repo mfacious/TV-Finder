@@ -8,11 +8,17 @@ require('library/autoloader.php');
 $showSearcher = new Tv\Searchers\FileSearcher(DOWNLOAD_DIR);
 
 $downloadSearchClients = array(
-    new Tv\Clients\HdBits()
+    new Tv\DownloadClients\HdBits()
 );
 
+$episodeClients = array(
+    new Tv\EpisodeClients\EpisodeGuess()
+);
 
-
-$showFinder = new Tv\TVSearch($showSearcher, $downloadSearchClients);
+$showFinder = new Tv\TVSearch(
+        $showSearcher, 
+        $downloadSearchClients,
+        $episodeClients
+);
 
 $showFinder->run();
