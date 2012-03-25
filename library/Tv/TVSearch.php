@@ -6,6 +6,14 @@ class TVSearch
 {
     
     protected $_searcher;
+    
+    /**
+     * Clients are the classes that will be used to search external sources
+     * to attept to find the latest episodes.
+     * 
+     * @var array 
+     */
+    protected $_clients = array();
 
     protected $_showList = array(
         array(
@@ -27,9 +35,20 @@ class TVSearch
      *
      * @param SearcherInterface $searcher 
      */
-    public function __construct(Searchers\SearcherInterface $searcher)
+    public function __construct(
+            Searchers\SearcherInterface $searcher,
+            array $downloadSearchClients
+    )
     {
         $this->setSearcher($searcher);
+        
+        if(empty($finders))
+        {
+            throw new \InvalidArgumentException(__METHOD__ . ' requires that'
+                    . ' the clients you pass must not be empty.');
+        }
+        
+        $this->setDownloadClients($downloadSearchClients);
     }
     
     public function getSearcher()
@@ -41,7 +60,47 @@ class TVSearch
     {
         $this->_searcher = $searcher;
     }
+    
+    public function getDownloadClients()
+    {
+        if(empty($this->_downloadClients))
+        {
+            throw new \InvalidArgumentException(__METHOD__ . ' no clients have'
+                    . ' been set yet! Try setting some with ' . __CLASS__
+                    . '::setClients()');
+        }
+        
+        return $this->_downloadClients;
+    }
 
+    public function setDownloadClients(array $clients)
+    {
+        foreach($clients as $client)
+        {
+            if(!is_object($client))
+            {
+                throw new \InvalidArgumentException(__METHOD__ . ' all clients'
+                        . ' passed must be objects!');
+            }
+            
+            if(!$client instanceof Clients\ClientInterface)
+            {
+                throw new \InvalidArgumentException(__METHOD__ . ' all clients'
+                        . ' passed must implement the ClientInterface.');
+            }
+            
+            $this->addDownloadClient($client);
+        }
+        
+        return $this;
+    }
+    
+    public function addDownloadClient(DownloadClients\ClientInterface $client)
+    {
+        $this->_downloadClients[] = $client;
+        
+        return $this;
+    }
         
     public function getShowList()
     {
@@ -58,6 +117,8 @@ class TVSearch
         $shows = $this->getShowList();
         
         $existingEps = $this->getExistingEps($shows);
+        
+        $this->getUpcomingEps($existingEps);
 
     }
     
@@ -101,5 +162,10 @@ class TVSearch
         }
         
         return $results;
+    }
+    
+    public function getUpcomingEps()
+    {
+        
     }
 }

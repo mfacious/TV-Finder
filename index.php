@@ -7,6 +7,12 @@ require('library/autoloader.php');
 
 $showSearcher = new Tv\Searchers\FileSearcher(DOWNLOAD_DIR);
 
-$showFinder = new Tv\TVSearch($showSearcher);
+$downloadSearchClients = array(
+    new Tv\Clients\HdBits()
+);
+
+
+
+$showFinder = new Tv\TVSearch($showSearcher, $downloadSearchClients);
 
 $showFinder->run();
