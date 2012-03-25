@@ -38,10 +38,28 @@ class FileSearcher implements SearcherInterface
         return $this;
     }
     
+    protected function setupRegex(array $names)
+    {
+        $rules = array();
+        foreach($names as $name)
+        {
+            $nameParts = explode(" ", $name);
+            $regex = "/" . implode('.*', $nameParts) . ".*S([0-9]{1,2}).*E([0-9]{1,2})/i";
+            
+            $rules[$name] = $regex;
+        }
+        
+        return $rules;
+    }
+    
     public function find($name, array $aliases)
     {
-        $bits = explode(" ", $name);
-        $regex = "/" . implode('.*', $bits) . ".*S([0-9]{1,2}).*E([0-9]{1,2})/i";
+        $names = array_merge($aliases, array($name));
+        
+        $showRegexes = $this->setupRegex($names);
+        
+        die();
+        
         $eps = array();
         $directoryIterator = new \RecursiveDirectoryIterator(
                 $this->getDownloadDir()
